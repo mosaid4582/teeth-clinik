@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>حجز موعد</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0E4F4A;
+    --ink-soft:#3E6E69;
+    --page:#F5F8F7;
+    --card:#FFFFFF;
+    --field:#F0F6F4;
+    --field-border:#D7E7E3;
+    --mint:#6FBEB0;
+    --line:#E1EBE8;
+    --error:#C24B3F;
+    --radius:14px;
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:32px 16px;
+    background:var(--page);
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(111,190,176,0.14), transparent 40%),
+      radial-gradient(circle at 90% 90%, rgba(14,79,74,0.06), transparent 45%);
+    font-family:"Cairo", sans-serif;
+    color:var(--ink);
+  }
+
+  .card{
+    width:100%;
+    max-width:460px;
+    background:var(--card);
+    border-radius:20px;
+    box-shadow:0 1px 2px rgba(14,79,74,0.06), 0 18px 40px -20px rgba(14,79,74,0.25);
+    overflow:hidden;
+    border:1px solid var(--line);
+  }
+
+  .card-head{
+    padding:28px 28px 20px;
+    border-bottom:1px solid var(--line);
+  }
+
+  .pulse{
+    width:100%;
+    height:28px;
+    display:block;
+    margin-bottom:14px;
+  }
+  .pulse path{
+    fill:none;
+    stroke:var(--mint);
+    stroke-width:2.5;
+    stroke-linecap:round;
+    stroke-linejoin:round;
+    stroke-dasharray:220;
+    stroke-dashoffset:220;
+    animation:draw 1.4s ease-out forwards;
+  }
+  @keyframes draw{ to{ stroke-dashoffset:0; } }
+  @media (prefers-reduced-motion: reduce){
+    .pulse path{ animation:none; stroke-dashoffset:0; }
+  }
+
+  .card-head h1{
+    margin:0 0 6px;
+    font-size:22px;
+    font-weight:800;
+    letter-spacing:0;
+  }
+  .card-head p{
+    margin:0;
+    font-size:14px;
+    font-weight:500;
+    color:var(--ink-soft);
+  }
+
+  form{
+    padding:24px 28px 28px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+
+  .field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+
+  .field label{
+    font-size:13px;
+    font-weight:600;
+    color:var(--ink);
+  }
+
+  .field .hint{
+    font-size:12px;
+    font-weight:500;
+    color:var(--error);
+    min-height:14px;
+  }
+
+  input, select{
+    font-family:inherit;
+    font-size:15px;
+    font-weight:500;
+    color:var(--ink);
+    background:var(--field);
+    border:1.5px solid var(--field-border);
+    border-radius:10px;
+    padding:12px 14px;
+    outline:none;
+    transition:border-color .15s ease, background .15s ease;
+    width:100%;
+  }
+
+  input::placeholder{
+    color:#8FADA8;
+    font-weight:400;
+  }
+
+  input:hover, select:hover{
+    border-color:var(--mint);
+  }
+
+  input:focus, select:focus{
+    border-color:var(--ink);
+    background:#fff;
+    box-shadow:0 0 0 3px rgba(111,190,176,0.28);
+  }
+
+  .field.invalid input,
+  .field.invalid select{
+    border-color:var(--error);
+  }
+
+  select{
+    appearance:none;
+    -webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230E4F4A' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:left 14px center;
+    padding-left:36px;
+  }
+
+  .row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+
+  button{
+    margin-top:6px;
+    font-family:inherit;
+    font-size:15px;
+    font-weight:700;
+    color:#fff;
+    background:var(--ink);
+    border:none;
+    border-radius:10px;
+    padding:14px 16px;
+    cursor:pointer;
+    transition:background .15s ease, transform .08s ease;
+  }
+  button:hover{ background:#0B3E3A; }
+  button:active{ transform:scale(0.99); }
+  button:disabled{ opacity:0.6; cursor:not-allowed; }
+
+  .status{
+    display:none;
+    margin-top:2px;
+    padding:12px 14px;
+    border-radius:10px;
+    font-size:13.5px;
+    font-weight:600;
+    text-align:center;
+  }
+  .status.show{ display:block; }
+  .status.success{
+    background:#E7F3EF;
+    color:#0E4F4A;
+    border:1px solid #C6E4DA;
+  }
+
+  @media (max-width:420px){
+    .row{ grid-template-columns:1fr; }
+    form{ padding:20px 20px 24px; }
+    .card-head{ padding:22px 20px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="card-head">
+    <svg class="pulse" viewBox="0 0 300 28" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 14 L70 14 L85 4 L100 24 L115 14 L300 14"/>
+    </svg>
+    <h1>حجز موعد</h1>
+    <p>املأ بياناتك وهنأكد لك الموعد بعد الحجز</p>
+  </div>
+
+  <form id="bookingForm" novalidate>
+    <div class="field" id="field-name">
+      <label for="patientName">اسم المريض</label>
+      <input type="text" id="patientName" name="patientName" placeholder="اكتب الاسم بالكامل" autocomplete="name">
+      <span class="hint"></span>
+    </div>
+
+    <div class="field" id="field-phone">
+      <label for="phone">رقم الهاتف</label>
+      <input type="tel" id="phone" name="phone" placeholder="01xxxxxxxxx" autocomplete="tel" inputmode="numeric">
+      <span class="hint"></span>
+    </div>
+
+    <div class="field" id="field-doctor">
+      <label for="doctor">الطبيب</label>
+      <select id="doctor" name="doctor">
+        <option value="" disabled selected>اختر الطبيب</option>
+        <option value="د. أحمد سامي">د. أحمد سامي — باطنة</option>
+        <option value="د. منى الشريف">د. منى الشريف — جلدية</option>
+        <option value="د. كريم عبد الله">د. كريم عبد الله — عظام</option>
+        <option value="د. هبة فتحي">د. هبة فتحي — أطفال</option>
+      </select>
+      <span class="hint"></span>
+    </div>
+
+    <div class="field" id="field-service">
+      <label for="service">الخدمة</label>
+      <select id="service" name="service">
+        <option value="" disabled selected>اختر نوع الكشف</option>
+        <option value="كشف جديد">كشف جديد</option>
+        <option value="متابعة">متابعة</option>
+        <option value="استشارة">استشارة</option>
+        <option value="فحص دوري">فحص دوري</option>
+      </select>
+      <span class="hint"></span>
+    </div>
+
+    <div class="row">
+      <div class="field" id="field-date">
+        <label for="date">التاريخ</label>
+        <input type="date" id="date" name="date">
+        <span class="hint"></span>
+      </div>
+      <div class="field" id="field-time">
+        <label for="time">الوقت</label>
+        <input type="time" id="time" name="time">
+        <span class="hint"></span>
+      </div>
+    </div>
+
+    <button type="submit" id="submitBtn">احجز الموعد</button>
+    <div class="status success" id="statusBox"></div>
+  </form>
+</div>
+
+<script>
+(function(){
+  const form = document.getElementById('bookingForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const statusBox = document.getElementById('statusBox');
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  document.getElementById('date').setAttribute('min', todayStr);
+
+  function setError(fieldId, message){
+    const field = document.getElementById(fieldId);
+    field.classList.toggle('invalid', Boolean(message));
+    field.querySelector('.hint').textContent = message || '';
+  }
+
+  function validate(data){
+    let ok = true;
+
+    if(!data.patientName || data.patientName.trim().length < 3){
+      setError('field-name', 'اكتب اسم المريض كاملاً');
+      ok = false;
+    } else setError('field-name', '');
+
+    const phoneDigits = data.phone.replace(/\D/g, '');
+    if(!/^01[0125][0-9]{8}$/.test(phoneDigits)){
+      setError('field-phone', 'رقم هاتف غير صحيح');
+      ok = false;
+    } else setError('field-phone', '');
+
+    if(!data.doctor){
+      setError('field-doctor', 'اختر الطبيب');
+      ok = false;
+    } else setError('field-doctor', '');
+
+    if(!data.service){
+      setError('field-service', 'اختر نوع الخدمة');
+      ok = false;
+    } else setError('field-service', '');
+
+    if(!data.date){
+      setError('field-date', 'اختر التاريخ');
+      ok = false;
+    } else if(data.date < todayStr){
+      setError('field-date', 'التاريخ فات');
+      ok = false;
+    } else setError('field-date', '');
+
+    if(!data.time){
+      setError('field-time', 'اختر الوقت');
+      ok = false;
+    } else setError('field-time', '');
+
+    return ok;
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    statusBox.classList.remove('show');
+
+    const data = {
+      patientName: document.getElementById('patientName').value,
+      phone: document.getElementById('phone').value,
+      doctor: document.getElementById('doctor').value,
+      service: document.getElementById('service').value,
+      date: document.getElementById('date').value,
+      time: document.getElementById('time').value
+    };
+
+    if(!validate(data)) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'جاري الحجز...';
+
+    // مكان استدعاء الـ API الحقيقي لحفظ الموعد في الباك إند:
+    // fetch('/api/appointments', {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify(data)
+    // }).then(...)
+
+    setTimeout(function(){
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'احجز الموعد';
+      statusBox.textContent = 'تم حجز الموعد بنجاح، هنتواصل معاك للتأكيد.';
+      statusBox.classList.add('show');
+      form.reset();
+    }, 700);
+  });
+})();
+</script>
+
+</body>
+</html>

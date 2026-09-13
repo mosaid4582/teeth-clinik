@@ -339,25 +339,43 @@
     if(!validate(data)) return;
 
     submitBtn.disabled = true;
-    submitBtn.textContent = 'جاري الحجز...';
+submitBtn.textContent = 'جاري الحجز...';
 
-    // مكان استدعاء الـ API الحقيقي لحفظ الموعد في الباك إند:
-    // fetch('/api/appointments', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(data)
-    // }).then(...)
+const WEBHOOK_URL = "https://squad-cascade-tastiness.ngrok-free.dev/webhook/dental-booking"; // لو شغال تست، خليه ده. لو عامل Activate في n8n شيل -test
 
-    setTimeout(function(){
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'احجز الموعد';
-      statusBox.textContent = 'تم حجز الموعد بنجاح، هنتواصل معاك للتأكيد.';
-      statusBox.classList.add('show');
-      form.reset();
-    }, 700);
+fetch(WEBHOOK_URL, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+})
+.then(async response => {
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+        return response.json();
+    }
+    return response.text();
+})
+.then(result => {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'احجز الموعد';
+    statusBox.textContent = 'تم إرسال طلب الحجز بنجاح، سنتواصل معك للتأكيد!';
+    statusBox.classList.add('show');
+    form.reset();
+})
+.catch(error => {
+    console.error('Error:', error);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'احجز الموعد';
+    statusBox.textContent = 'حدث خطأ أثناء الإرسال، تأكد من تشغيل الـ n8n والرابط.';
+    statusBox.classList.add('show');
+});
   });
 })();
 </script>
-
 </body>
 </html>
